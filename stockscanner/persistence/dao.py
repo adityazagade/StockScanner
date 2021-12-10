@@ -4,6 +4,10 @@ from stockscanner.utils import FileUtils
 
 
 class DAO(ABC):
+    pass
+
+
+class IndexDAO(DAO):
     @abstractmethod
     def schema_exists(self):
         pass
@@ -13,7 +17,7 @@ class DAO(ABC):
         pass
 
 
-class FileSystemDAO(DAO):
+class IndexFileSystemDB(IndexDAO):
     # overriding abstract method
     def __init__(self):
         self.file_name = "data.csv"
@@ -22,5 +26,5 @@ class FileSystemDAO(DAO):
         return FileUtils.file_exists(self.file_name)
 
     def save(self, entry):
-        FileUtils.append_to_file(self.file_name, entry);
+        FileUtils.append_to_file(self.file_name, entry)
         # TODO

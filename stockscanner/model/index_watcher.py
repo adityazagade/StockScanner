@@ -7,7 +7,7 @@ from datetime import date, timedelta
 from threading import Thread
 
 from stockscanner.persistence import dao_factory
-from stockscanner.persistence.dao import DAO
+from stockscanner.persistence.dao import IndexDAO
 from stockscanner.utils import HttpUtils, Constants
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ class IndexWatcher(Thread):
         self.hist_start_year = hist_start_year
         self.watch_freq = watch_freq * 60
         self.ticker = ticker
-        self.index_dao: DAO = dao_factory.get_index_dao(db)
+        self.index_dao: IndexDAO = dao_factory.get_index_dao(db)
 
     def run(self) -> None:
         historical_data_exists = self.index_dao.schema_exists()

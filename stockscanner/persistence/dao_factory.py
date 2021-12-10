@@ -1,6 +1,6 @@
-from stockscanner.persistence.dao import DAO, FileSystemDAO
+from stockscanner.persistence.dao import IndexDAO, IndexFileSystemDB
 
 
-def get_index_dao(db) -> DAO:
+def get_index_dao(db) -> IndexDAO:
     if db == "fs":
-        return FileSystemDAO()
+        return IndexFileSystemDB()
