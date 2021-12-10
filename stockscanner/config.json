@@ -1,4 +1,5 @@
 {
   "db": "fs",
-  "watch_freq": 60
+  "watch_freq": 60,
+  "hist_start_year": 2005
 }

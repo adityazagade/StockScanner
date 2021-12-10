@@ -1,6 +1,7 @@
 import os
 import logging
 import json
+import os.path
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +19,15 @@ def save_to_csv(file_name, content, overwrite=False):
     logger.info(f"file {file_name} successfully saved")
 
 
-def file_exists(file_name):
-    return True
+def append_to_file(fname, content):
+    file1 = open(fname, "a")
+    # writing newline character
+    file1.write(content)
+    file1.close()
+
+
+def file_exists(fname):
+    return os.path.isfile(fname)
 
 
 def read_json_file(file_name):

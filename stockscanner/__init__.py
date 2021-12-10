@@ -1,30 +1,10 @@
-import stockscanner.app
 import logging
-import sys
-
-print(sys.path)
 
 
 def init_log():
     root_logger = logging.getLogger()
-    root_logger.setLevel(logging.INFO)
-
-    # fh = logging.FileHandler('fooltrader.log')
-    # fh.setLevel(logging.INFO)
-
-    # ch = logging.StreamHandler()
-    # ch.setLevel(logging.INFO)
-
-    # create formatter and add it to the handlers
-    # formatter = logging.Formatter(
-    #     "%(levelname)s  %(threadName)s  %(asctime)s  %(name)s:%(lineno)s  %(funcName)s  %(message)s")
-    # fh.setFormatter(formatter)
-    # ch.setFormatter(formatter)
-
-    # add the handlers to the logger
-    # root_logger.addHandler(fh)
-    # root_logger.addHandler(ch)
+    root_logger.setLevel(level=logging.INFO)
+    logging.basicConfig(level=logging.INFO)
 
 
 init_log()
-logger = logging.getLogger(__name__)

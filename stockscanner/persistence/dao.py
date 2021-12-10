@@ -15,9 +15,12 @@ class DAO(ABC):
 
 class FileSystemDAO(DAO):
     # overriding abstract method
+    def __init__(self):
+        self.file_name = "data.csv"
+
     def schema_exists(self):
-        return FileUtils.file_exists("data.csv")
+        return FileUtils.file_exists(self.file_name)
 
     def save(self, entry):
-        pass
+        FileUtils.append_to_file(self.file_name, entry);
         # TODO
