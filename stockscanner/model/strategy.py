@@ -2,7 +2,9 @@ import logging
 from abc import ABC, abstractmethod
 from datetime import timedelta
 
-from stockscanner.model.asset import Equity, Holding, Debt, Cash, Entry
+import pandas as pd
+
+from stockscanner.model.asset import Equity, Debt, Cash
 from stockscanner.model.report import Report
 
 logger = logging.getLogger(__name__)
@@ -18,7 +20,7 @@ class Strategy(ABC):
         self.name = None
 
     @abstractmethod
-    def check_if_constraints_are_matched(self, hist_data) -> bool:
+    def check_if_constraints_are_matched(self, hist_data, **kwargs) -> bool:
         pass
 
     @abstractmethod
@@ -28,12 +30,16 @@ class Strategy(ABC):
 
 class MarketMovementBasedAllocation(Strategy):
 
-    def __init__(self) -> None:
+    def __init__(self, percent_change) -> None:
         super().__init__()
         self.name = "MarketMovementBasedAllocation"
+        self.change_threshold = percent_change / 100
 
-    def check_if_constraints_are_matched(self, hist_data):
-        return True
+    def check_if_constraints_are_matched(self, hist_data: pd.DataFrame, **kwargs) -> bool:
+        pivot = kwargs.get("pivot")
+        if abs((hist_data.iloc[-1]['Close'] - pivot) / pivot) >= self.change_threshold:
+            return True
+        return False
 
     def backtest(self, ticker_dao, **kwargs) -> Report:
         back_test_start_date = kwargs.get('back_test_start_date')
@@ -51,14 +57,15 @@ class MarketMovementBasedAllocation(Strategy):
 
         # read nifty hist data
         df_nifty = None
+        pivot = 0
         try:
             df_nifty = ticker_dao.read_all_data("NIFTY 50")
             df_nifty_init = get_df_between_dates(df_nifty, back_test_start_date, back_test_start_date + timedelta(5))
             back_test_start_date = df_nifty_init.iloc[0]['Date']
             nifty_on_start_date = df_nifty_init.iloc[0]
-
             eq_value = eq_weight * initial_amount
             eq_price = nifty_on_start_date['Close']
+            pivot = eq_price
             eq_quantity = eq_value / eq_price
             eq = Equity()
             eq.add(symbol="NIFTY 50", date=back_test_start_date, quantity=eq_quantity, price=eq_price)
@@ -92,14 +99,18 @@ class MarketMovementBasedAllocation(Strategy):
         # iterate over each historical day from the date mentioned in kwargs
         for index, row in df_nifty.iterrows():
             curr_date = row['Date']
+            print(curr_date)
             if curr_date >= back_test_start_date:
                 # in each iteration check if the strategy constraints are met.
-                print(back_test_start_date.strftime("%d-%b-%Y"))
-                print(curr_date.strftime("%d-%b-%Y"))
                 mask = (df_nifty['Date'] >= back_test_start_date.strftime("%d-%b-%Y")) & (
                         df_nifty['Date'] <= curr_date.strftime("%d-%b-%Y"))
                 df1 = df_nifty.loc[mask]
-                if self.check_if_constraints_are_matched(df1):
+                if self.check_if_constraints_are_matched(df1, pivot=pivot):
+                    # // wieights will be recalulated based on parameters.
+                    pivot = df1.iloc[-1]['Close']
                     # if the constraints are met, then call rebalance on portfolio.
-                    p.do_rebalance(self)
-                    # log if rebalanced
+                    p.do_rebalance(curr_date=curr_date, eq_weight=eq_weight, debt_weight=debt_weight,
+                                   gold_wight=gold_wight, cash_weight=cash_weight)
+                    p.add_rebalance_logs(f"Portfolio rebalanced on {curr_date}")
+
+        return Report(p)

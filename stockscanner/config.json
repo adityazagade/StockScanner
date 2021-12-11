@@ -5,5 +5,10 @@
   "backtest": {
     "strategy_name": "MarketMovementBasedAllocation",
     "backtest_start_date": "01-01-2010"
+  },
+  "strategies": {
+    "MarketMovementBasedAllocation": {
+      "change_threshold": 5
+    }
   }
 }

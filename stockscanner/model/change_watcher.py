@@ -7,5 +7,5 @@ class ChangeWatcher(Thread):
 
     def run(self):
         pass
-        # 1. load the date from the file system using the Index_DAO
+        # 1. load the date from the file system using the Ticker_DAO
         # 2. When there is a
