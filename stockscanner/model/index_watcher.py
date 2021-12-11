@@ -7,7 +7,7 @@ from datetime import date, timedelta
 from threading import Thread
 
 from stockscanner.persistence import dao_factory
-from stockscanner.persistence.dao import IndexDAO
+from stockscanner.persistence.dao import TickerDAO
 from stockscanner.utils import HttpUtils, Constants
 
 logger = logging.getLogger(__name__)
@@ -19,10 +19,10 @@ class IndexWatcher(Thread):
         self.hist_start_year = hist_start_year
         self.watch_freq = watch_freq * 60
         self.ticker = ticker
-        self.index_dao: IndexDAO = dao_factory.get_index_dao(db)
+        self.index_dao: TickerDAO = dao_factory.get_ticker_dao(db)
 
     def run(self) -> None:
-        historical_data_exists = self.index_dao.schema_exists()
+        historical_data_exists = self.index_dao.schema_exists(self.ticker)
         # 1. Check if the File/Table exists. If yes, don't pull the historical data. Else pull it and persist
         if not historical_data_exists:
             # download historical data
@@ -30,7 +30,7 @@ class IndexWatcher(Thread):
         # 2. Pull the data from the NSE Website for today. Save to DB.
         self.download_today_data()
         # 3. Sleep for configured time.
-        time.sleep(self.watch_freq)
+        # time.sleep(self.watch_freq)
 
     def download_today_data(self):
         try:
@@ -41,7 +41,7 @@ class IndexWatcher(Thread):
             logger.error(e)
 
     def download_historical_data(self):
-        logger.info(f"${threading.current_thread()} Starting to download historical data...")
+        logger.info(f"{threading.current_thread()} Starting to download historical data...")
         try:
             self.write_headers()
             time.sleep(1)
@@ -78,7 +78,7 @@ class IndexWatcher(Thread):
                 lst.pop()
                 # ohlc_dict = {}
                 for entry in lst:
-                    self.index_dao.save("\n" + entry)
+                    self.index_dao.save(self.ticker, "\n" + entry)
                 # tmp = entry.split(",")
                 # for index, item in enumerate(tmp):
                 #     key = headers.split(",")[index].strip('"').strip()
@@ -104,7 +104,7 @@ class IndexWatcher(Thread):
         OHLC_table_div = soup.find("div", {"id": "csvContentDiv"})
         lst = OHLC_table_div.text.split(":")
         headers = lst[0]
-        self.index_dao.save(headers)
+        self.index_dao.save(self.ticker, headers)
 
 
 if __name__ == '__main__':
