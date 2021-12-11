@@ -80,8 +80,7 @@ class Holding:
     def get_current_price(self) -> float:
         dao = DAOManager.get_instance().get_dao_for_ticker()
         df = dao.read_all_data(self.symbol)
-        mask = (df['Date'] >= date.today().strftime("%d-%b-%Y")) & (df['Date'] < (
-                date.today() - timedelta(5)).strftime("%d-%b-%Y"))
+        mask = (df['Date'] > (date.today() - timedelta(5)).strftime("%d-%b-%Y")) & (df['Date'] <= date.today().strftime("%d-%b-%Y"))
         return float((df.loc[mask]).iloc[-1]['Close'])
 
     def get_price_as_of_date(self, d) -> float:
@@ -121,11 +120,11 @@ class Equity(Asset):
                 if quantity > stock.history[0].quantity:
                     q_tmp = stock.history[0].quantity
                     stock.history.pop(0)
-                    self.remove(symbol=symbol, quantity=quantity - q_tmp)
+                    self.remove(symbol=symbol, quantity= quantity - q_tmp)
                 elif quantity == stock.history[0].quantity:
                     stock.history.pop(0)
                 else:
-                    stock.history[0].quantity = (quantity - stock.history[0].quantity)
+                    stock.history[0].quantity = (stock.history[0].quantity - quantity)
                 break
 
     def add_by_amount(self, amount: float, d: date = date.today()):

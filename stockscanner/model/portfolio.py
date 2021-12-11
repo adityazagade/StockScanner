@@ -41,30 +41,32 @@ class Portfolio:
         curr_debt_weight = self.get_debt_weight(curr_date)
         curr_gold_weight = self.get_gold_weight(curr_date)
         curr_cash_weight = self.get_cash_weight(curr_date)
+
+        val_as_of_today = self.get_value_as_of_date(curr_date)
         # change in weight
-        amount = (kwargs.get("eq_weight", 0) - curr_eq_weight) * self.get_value_as_of_date(curr_date)
+        amount = (kwargs.get("eq_weight", 0) - curr_eq_weight) * val_as_of_today
         if amount > 0:
-            self.get_eq_asset().add_by_amount(amount, curr_date)
+            self.get_eq_asset().add_by_amount(abs(amount), curr_date)
         elif amount < 0:
-            self.get_eq_asset().reduce_by_amount(amount, curr_date)
+            self.get_eq_asset().reduce_by_amount(abs(amount), curr_date)
 
-        amount = (kwargs.get("debt_weight", 0) - curr_debt_weight) * self.get_value_as_of_date(curr_date)
+        amount = (kwargs.get("debt_weight", 0) - curr_debt_weight) * val_as_of_today
         if amount > 0:
-            self.get_debt_asset().add_by_amount(amount, curr_date)
+            self.get_debt_asset().add_by_amount(abs(amount), curr_date)
         elif amount < 0:
-            self.get_debt_asset().reduce_by_amount(amount, curr_date)
+            self.get_debt_asset().reduce_by_amount(abs(amount), curr_date)
 
-        amount = (kwargs.get("gold_wight", 0) - curr_gold_weight) * self.get_value_as_of_date(curr_date)
+        amount = (kwargs.get("gold_wight", 0) - curr_gold_weight) * val_as_of_today
         if amount > 0:
-            self.get_gold_asset().add_by_amount(amount, curr_date)
+            self.get_gold_asset().add_by_amount(abs(amount), curr_date)
         elif amount < 0:
-            self.get_gold_asset().reduce_by_amount(amount, curr_date)
+            self.get_gold_asset().reduce_by_amount(abs(amount), curr_date)
 
-        amount = (kwargs.get("cash_weight", 0) - curr_cash_weight) * self.get_value_as_of_date(curr_date)
+        amount = (kwargs.get("cash_weight", 0) - curr_cash_weight) * val_as_of_today
         if amount > 0:
-            self.get_cash_asset().add_by_amount(amount, curr_date)
+            self.get_cash_asset().add_by_amount(abs(amount), curr_date)
         elif amount < 0:
-            self.get_cash_asset().reduce_by_amount(amount, curr_date)
+            self.get_cash_asset().reduce_by_amount(abs(amount), curr_date)
 
     def get_eq_weight(self, curr_date=None) -> float:
         for a in self.__assets:
@@ -107,12 +109,6 @@ class Portfolio:
         for a in self.__assets:
             sum += a.get_current_value()
         return sum
-
-    def current_value(self):
-        curr_val = 0
-        for a in self.__assets:
-            curr_val += a.get_current_value()
-        return curr_val
 
     def add_rebalance_logs(self, message):
         self.__change_logs.append(message)

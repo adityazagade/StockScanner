@@ -99,18 +99,17 @@ class MarketMovementBasedAllocation(Strategy):
         # iterate over each historical day from the date mentioned in kwargs
         for index, row in df_nifty.iterrows():
             curr_date = row['Date']
-            print(curr_date)
             if curr_date >= back_test_start_date:
                 # in each iteration check if the strategy constraints are met.
                 mask = (df_nifty['Date'] >= back_test_start_date.strftime("%d-%b-%Y")) & (
                         df_nifty['Date'] <= curr_date.strftime("%d-%b-%Y"))
                 df1 = df_nifty.loc[mask]
                 if self.check_if_constraints_are_matched(df1, pivot=pivot):
-                    # // wieights will be recalulated based on parameters.
+                    # // weights will be recalculated based on parameters.
                     pivot = df1.iloc[-1]['Close']
                     # if the constraints are met, then call rebalance on portfolio.
                     p.do_rebalance(curr_date=curr_date, eq_weight=eq_weight, debt_weight=debt_weight,
                                    gold_wight=gold_wight, cash_weight=cash_weight)
-                    p.add_rebalance_logs(f"Portfolio rebalanced on {curr_date}")
-
+                    message = f"Total Invested: ${p.total_invested()}, Current Value: ${p.get_value_as_of_date(curr_date)} \r\n eq: {p.get_eq_weight(curr_date)} debt: {p.get_debt_weight(curr_date)} gold: {p.get_gold_weight(curr_date)} cash: {p.get_cash_weight(curr_date)}"
+                    p.add_rebalance_logs(f"Portfolio rebalanced on {curr_date}: \n + ${message}")
         return Report(p)
