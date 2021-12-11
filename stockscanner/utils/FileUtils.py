@@ -31,7 +31,6 @@ def file_exists(fname):
 
 
 def read_json_file(file_name):
-    logger.info(os.getcwd())
     # Opening JSON file
     f = open(file_name)
     # returns JSON object as a dictionary
