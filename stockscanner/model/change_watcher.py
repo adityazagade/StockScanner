@@ -11,8 +11,8 @@ class ChangeWatcher(Thread):
         super().__init__()
 
     def run(self):
-        price_action = pd.read_csv(sys.path[0] + "\data.csv", delimiter=",")
-        indicator_action = pd.read_csv(sys.path[0] + "\indicators.csv", delimiter=",")
+        price_action = pd.read_csv(sys.path[0] + "\\NIFTY 50.csv", delimiter=",")
+        indicator_action = pd.read_csv(sys.path[0] + "\\NIFTY 50_pe.csv", delimiter=",")
         merge_pd = price_action.merge(indicator_action, how="left", on="Date")
         # print(merge_pd.dtypes)
         # print(merge_pd["P/E"].describe())
@@ -26,14 +26,14 @@ class ChangeWatcher(Thread):
         new_pd["Cumulative_Probablity"] = new_pd["Probablity"].cumsum()
         new_pd["Equity_Weightage"] = round(75 - (75-25)*new_pd["Cumulative_Probablity"],2)
         new_pd["P/E_Range"] = new_pd["P/E_Range"].astype("string")
-        print(new_pd)
+        # print(new_pd)
 
         last_dt = str(merge_pd["Date"].iloc[-1])
         last_cl = str(merge_pd["Close"].iloc[-1])
         last_pe = str(merge_pd["P/E"].iloc[-1])
         # print(last_dt + " " + last_cl + " " + last_pe)
         # X = u + z@
-        cur_pe = 25.6 # X
+        cur_pe = 20 # X
         for index, row in new_pd.iterrows():
             cat_min = float(row["P/E_Range"].split(",")[0].split("(")[1])
             cat_max = float(row["P/E_Range"].split(",")[1].split("]")[0])
