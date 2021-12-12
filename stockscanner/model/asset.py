@@ -1,4 +1,3 @@
-import math
 from abc import ABC, abstractmethod
 from typing import List
 from datetime import date, timedelta
@@ -11,6 +10,17 @@ class Entry:
         self.date = d
         self.quantity = quantity
         self.price = price
+
+
+class Trade:
+    def __init__(self, action, d, price, quantity) -> None:
+        self.action = action
+        self.date = d
+        self.price = price
+        self.quantity = quantity
+
+    def __str__(self) -> str:
+        return f"{self.action} {self.date} {self.price} {self.quantity}"
 
 
 class Asset(ABC):
@@ -51,6 +61,10 @@ class Asset(ABC):
     def reduce_by_amount(self, amount: float, d: date = date.today()):
         pass
 
+    @abstractmethod
+    def get_trade_book(self):
+        pass
+
 
 class Holding:
     def __init__(self, symbol, history: List[Entry]) -> None:
@@ -80,7 +94,8 @@ class Holding:
     def get_current_price(self) -> float:
         dao = DAOManager.get_instance().get_dao_for_ticker()
         df = dao.read_all_data(self.symbol)
-        mask = (df['Date'] > (date.today() - timedelta(5)).strftime("%d-%b-%Y")) & (df['Date'] <= date.today().strftime("%d-%b-%Y"))
+        mask = (df['Date'] > (date.today() - timedelta(5)).strftime("%d-%b-%Y")) & (
+                df['Date'] <= date.today().strftime("%d-%b-%Y"))
         return float((df.loc[mask]).iloc[-1]['Close'])
 
     def get_price_as_of_date(self, d) -> float:
@@ -98,6 +113,7 @@ class Equity(Asset):
         super().__init__()
         self.type = Asset.EQUITY
         self.__stocks: List[Holding] = []
+        self.__trade_book: List[Trade] = list()
 
     def add(self, **kwargs):
         symbol: str = kwargs.get("symbol")
@@ -107,12 +123,16 @@ class Equity(Asset):
         for stock in self.__stocks:
             if stock.symbol == symbol:
                 stock.history.append(Entry(d, quantity, price))
+                self.__trade_book.append(Trade("buy", d, price, quantity))
                 return
         self.__stocks.append(Holding(symbol, [Entry(d, quantity, price)]))
+        self.__trade_book.append(Trade("buy", d, price, quantity))
 
     def remove(self, **kwargs):
         symbol = kwargs.get("symbol")
         quantity = kwargs.get("quantity")
+        d = kwargs.get("date")
+        price = kwargs.get("price")
         for stock in self.__stocks:
             if stock.symbol == symbol:
                 if stock.get_quantity() < quantity:
@@ -120,11 +140,14 @@ class Equity(Asset):
                 if quantity > stock.history[0].quantity:
                     q_tmp = stock.history[0].quantity
                     stock.history.pop(0)
-                    self.remove(symbol=symbol, quantity= quantity - q_tmp)
+                    self.__trade_book.append(Trade("sell", d, price, q_tmp))
+                    self.remove(symbol=symbol, quantity=quantity - q_tmp, date=d, price=price)
                 elif quantity == stock.history[0].quantity:
                     stock.history.pop(0)
+                    self.__trade_book.append(Trade("sell", d, price, quantity))
                 else:
                     stock.history[0].quantity = (stock.history[0].quantity - quantity)
+                    self.__trade_book.append(Trade("sell", d, price, quantity))
                 break
 
     def add_by_amount(self, amount: float, d: date = date.today()):
@@ -137,7 +160,7 @@ class Equity(Asset):
         dao = DAOManager.get_instance().get_dao_for_ticker()
         data = dao.read_data_for_date("NIFTY 50", d)
         quantity = amount / float(data['Close'])
-        self.remove(symbol="NIFTY 50", quantity=quantity)
+        self.remove(symbol="NIFTY 50", quantity=quantity, date=d, price=data['Close'])
 
     def get_current_value(self):
         curr_value = 0
@@ -157,6 +180,9 @@ class Equity(Asset):
             for entry in stock.history:
                 invested_amount += entry.price * entry.quantity
         return invested_amount
+
+    def get_trade_book(self):
+        return self.__trade_book
 
 
 class Debt(Asset):
@@ -223,6 +249,9 @@ class Debt(Asset):
         quantity = amount / float(data['Close'])
         self.remove(symbol="LIQUIDBEES", quantity=quantity)
 
+    def get_trade_book(self):
+        return []
+
 
 # class Gold(Asset):
 #     def __init__(self) -> None:
@@ -258,3 +287,6 @@ class Cash(Asset):
 
     def get_invested_amount(self) -> float:
         return self.amount
+
+    def get_trade_book(self):
+        return []

@@ -24,6 +24,10 @@ class TickerDAO(DAO):
         pass
 
     @abstractmethod
+    def read_all_pe_data(self, symbol) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
     def pe_schema_exists(self, ticker):
         pass
 
@@ -48,6 +52,11 @@ class TickerFileSystemDB(TickerDAO):
 
     def read_all_data(self, symbol) -> pd.DataFrame:
         df = pd.read_csv(f"{symbol}.csv")
+        df['Date'] = pd.to_datetime(df['Date'], format='%d-%b-%Y')
+        return df
+
+    def read_all_pe_data(self, symbol) -> pd.DataFrame:
+        df = pd.read_csv(f"{symbol}_pe.csv")
         df['Date'] = pd.to_datetime(df['Date'], format='%d-%b-%Y')
         return df
 

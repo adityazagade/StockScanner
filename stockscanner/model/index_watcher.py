@@ -164,7 +164,7 @@ class IndexWatcher(Thread):
                     self.ticker_dao.save_pe_data(self.ticker, "\n" + entry)
             else:
                 logger.warning(
-                    "Unable to get data for range " + str(params["start_date"]) + "-" + str(params["end_date"]))
+                    "Unable to get data for range " + str(params["fromDate"]) + "-" + str(params["toDate"]))
         except Exception as e:
             logger.error(e)
 

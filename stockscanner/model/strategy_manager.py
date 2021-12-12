@@ -4,6 +4,7 @@ from stockscanner.model.config import Config
 from stockscanner.model.exceptions import StrategyNotFoundException
 from stockscanner.model.strategy import Strategy, MarketMovementBasedAllocation
 from stockscanner.persistence import dao_factory
+from stockscanner.persistence.dao import TickerDAO
 
 
 class StrategyManager:
@@ -11,7 +12,7 @@ class StrategyManager:
         config = Config.load_config()
         self.strategies: List[Strategy] = [
             MarketMovementBasedAllocation(config["strategies"]["MarketMovementBasedAllocation"]["change_threshold"])]
-        self.ticker_dao = dao_factory.get_ticker_dao(config["db"])
+        self.ticker_dao: TickerDAO = dao_factory.get_ticker_dao(config["db"])
 
     def back_test_strategy(self, sname, **kwargs):
         try:

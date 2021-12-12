@@ -142,3 +142,12 @@ class Portfolio:
             if a.type == Asset.GOLD:
                 return a
         raise Exception("Asset does not exist")
+
+    def __str__(self) -> str:
+        current_details = f"Total Invested: ${self.total_invested()}, Current Value: ${self.get_current_value()}"
+        change_logs = '\r\n'.join(map(str, self.get_change_logs()))
+        trade_book = '\r\n'.join(map(str, self.get_trade_book()))
+        return f"{current_details} \r\n + {change_logs} \r\n {trade_book}"
+
+    def get_trade_book(self) -> list:
+        return self.get_eq_asset().get_trade_book()
