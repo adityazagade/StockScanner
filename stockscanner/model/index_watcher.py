@@ -19,7 +19,7 @@ class IndexWatcher(Thread):
         self.hist_start_year = hist_start_year
         self.watch_freq = watch_freq * 60
         self.ticker = ticker
-        self.ticker_dao: TickerDAO = dao_factory.get_ticker_dao(db)
+        self.ticker_dao: TickerDAO = dao_factory.get_ticker_dao(db, check_same_thread=False)
 
     def run(self) -> None:
         # 1. pull hist data
@@ -82,7 +82,7 @@ class IndexWatcher(Thread):
                 lst.pop(0)
                 lst.pop()
                 for entry in lst:
-                    self.ticker_dao.save(self.ticker, "\n" + entry)
+                    self.ticker_dao.save(self.ticker, entry)
             else:
                 logger.warning("Unable to get data for range " + str(start_date) + "-" + str(end_date))
         except Exception as e:
@@ -104,7 +104,7 @@ class IndexWatcher(Thread):
         OHLC_table_div = soup.find("div", {"id": "csvContentDiv"})
         lst = OHLC_table_div.text.split(":")
         headers = lst[0]
-        self.ticker_dao.save(self.ticker, headers)
+        self.ticker_dao.save_headers(self.ticker, headers)
 
     def download_historical_pe_data(self):
         historical_data_exists = self.ticker_dao.pe_schema_exists(self.ticker)
@@ -161,7 +161,7 @@ class IndexWatcher(Thread):
                 lst.pop(0)
                 lst.pop()
                 for entry in lst:
-                    self.ticker_dao.save_pe_data(self.ticker, "\n" + entry)
+                    self.ticker_dao.save_pe_data(self.ticker, entry)
             else:
                 logger.warning(
                     "Unable to get data for range " + str(params["fromDate"]) + "-" + str(params["toDate"]))
@@ -188,7 +188,7 @@ class IndexWatcher(Thread):
         OHLC_table_div = soup.find("div", {"id": "csvContentDiv"})
         lst = OHLC_table_div.text.split(":")
         headers = lst[0]
-        self.ticker_dao.save_pe_data(self.ticker, headers)
+        self.ticker_dao.save_pe_headers(self.ticker, headers)
 
 
 if __name__ == '__main__':

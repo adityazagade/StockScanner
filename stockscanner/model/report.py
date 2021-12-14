@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-from math import log
 
 
 class Report:

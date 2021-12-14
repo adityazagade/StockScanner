@@ -1,5 +1,5 @@
 {
-  "db": "fs",
+  "db": "sqlite3",
   "watch_freq": 60,
   "hist_start_year": 2005,
   "backtest": {
@@ -8,7 +8,7 @@
   },
   "strategies": {
     "MarketMovementBasedAllocation": {
-      "change_threshold": 10000
+      "change_threshold": 5
     }
   }
 }

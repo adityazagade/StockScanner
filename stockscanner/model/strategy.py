@@ -45,7 +45,6 @@ class MarketMovementBasedAllocation(Strategy):
     def backtest(self, ticker_dao: TickerDAO, **kwargs) -> Report:
         back_test_start_date = kwargs.get('back_test_start_date')
 
-
         # create portfolio based on weights
         from stockscanner.model.portfolio import Portfolio
         p: Portfolio = Portfolio("test_portfolio")
@@ -120,7 +119,7 @@ class MarketMovementBasedAllocation(Strategy):
                     p.do_rebalance(curr_date=curr_date, eq_weight=eq_weight, debt_weight=debt_weight,
                                    gold_wight=gold_wight, cash_weight=cash_weight)
                     message = f"Total Invested: ${p.total_invested()}, Current Value: ${p.get_value_as_of_date(curr_date)} \r\n eq: {p.get_eq_weight(curr_date)} debt: {p.get_debt_weight(curr_date)} gold: {p.get_gold_weight(curr_date)} cash: {p.get_cash_weight(curr_date)}"
-                    current_pe = (df_nifty.loc[df_nifty['Date'] == curr_date])['P/E'].iloc[0]
+                    current_pe = (df_nifty.loc[df_nifty['Date'] == curr_date])['P_E'].iloc[0]
                     p.add_rebalance_logs(f"Portfolio rebalanced on {curr_date} pe:{current_pe} \n + ${message}")
         report.add_portfolio(p)
         return report
@@ -129,22 +128,22 @@ class MarketMovementBasedAllocation(Strategy):
         mask = (df_nifty['Date'] >= (curr_date - timedelta(days=365 * 5)).strftime("%d-%b-%Y")) & (
                 df_nifty['Date'] <= curr_date.strftime("%d-%b-%Y"))
         df_nifty_slice = df_nifty.loc[mask]
-        cur_pe = df_nifty_slice.iloc[-1]['P/E']
-        df_nifty_slice = df_nifty_slice.sort_values("P/E", ascending=True, inplace=False)
-        df_nifty_slice["P/E_Range"] = pd.cut(df_nifty_slice["P/E"],
-                                             bins=(int(df_nifty_slice["P/E"].max()) - int(
-                                                 df_nifty_slice["P/E"].min() + 1)), precision=2,
+        cur_pe = df_nifty_slice.iloc[-1]['P_E']
+        df_nifty_slice = df_nifty_slice.sort_values("P_E", ascending=True, inplace=False)
+        df_nifty_slice["P_E_Range"] = pd.cut(df_nifty_slice["P_E"],
+                                             bins=(int(df_nifty_slice["P_E"].max()) - int(
+                                                 df_nifty_slice["P_E"].min() + 1)), precision=2,
                                              ordered=True)
-        new_pd = df_nifty_slice["P/E_Range"].value_counts() / df_nifty_slice["P/E"].count()
+        new_pd = df_nifty_slice["P_E_Range"].value_counts() / df_nifty_slice["P_E"].count()
         new_pd = new_pd.to_frame(name="Probablity")
         new_pd.sort_index(inplace=True)
-        new_pd["P/E_Range"] = new_pd.index
+        new_pd["P_E_Range"] = new_pd.index
         new_pd["Cumulative_Probablity"] = new_pd["Probablity"].cumsum()
         new_pd["Equity_Weightage"] = round(80 - (80 - 50) * new_pd["Cumulative_Probablity"], 2)
-        new_pd["P/E_Range"] = new_pd["P/E_Range"].astype("string")
+        new_pd["P_E_Range"] = new_pd["P_E_Range"].astype("string")
         for index, row in new_pd.iterrows():
-            cat_min = float(row["P/E_Range"].split(",")[0].split("(")[1])
-            cat_max = float(row["P/E_Range"].split(",")[1].split("]")[0])
+            cat_min = float(row["P_E_Range"].split(",")[0].split("(")[1])
+            cat_max = float(row["P_E_Range"].split(",")[1].split("]")[0])
             if cat_min < cur_pe <= cat_max:
                 return row["Equity_Weightage"] / 100
         raise Exception("Could not determine equity weight")

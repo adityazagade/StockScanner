@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List
 from datetime import date, timedelta
 
-from stockscanner.persistence.dao import DAOManager
+from stockscanner.persistence.dao_manager import DAOManager
 
 
 class Entry:
