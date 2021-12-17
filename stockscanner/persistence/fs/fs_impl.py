@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 import pandas as pd
 
-from stockscanner.persistence.dao import TickerDAO
+from stockscanner.persistence.dao import TickerDAO, PortfolioDAO, StrategyDAO
 from stockscanner.utils import FileUtils
 
 
@@ -29,7 +29,7 @@ class TickerFileSystemDB(TickerDAO):
         if f"{symbol}_pe" not in TickerFileSystemDB.data:
             df = pd.read_csv(f"{symbol}_pe.csv")
             df['Date'] = pd.to_datetime(df['Date'], format='%d-%b-%Y')
-            df.rename(columns={'P/E': 'P_E', 'P/B': 'P_B', 'Div Yield':'Div_Yield'}, inplace=True)
+            df.rename(columns={'P/E': 'P_E', 'P/B': 'P_B', 'Div Yield': 'Div_Yield'}, inplace=True)
             TickerFileSystemDB.data[f"{symbol}_pe"] = df
         return TickerFileSystemDB.data[f"{symbol}_pe"].copy()
 
@@ -56,3 +56,11 @@ class TickerFileSystemDB(TickerDAO):
         # TODO: I should check if the data already exist. If yes, the don't add. Otherwise need to update the satic
         #  variable data and also the csv file.
         FileUtils.append_to_file(f"{symbol}_pe.csv", "\n" + entry)
+
+
+class FSPortfolioDaoImpl(PortfolioDAO):
+    pass
+
+
+class FSStrategyDaoImpl(StrategyDAO):
+    pass

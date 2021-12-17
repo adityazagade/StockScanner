@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List
 from datetime import date, timedelta
 
+from stockscanner.model.asset.asset_type import AssetType
 from stockscanner.persistence.dao_manager import DAOManager
 
 
@@ -24,11 +25,6 @@ class Trade:
 
 
 class Asset(ABC):
-    GOLD = "gold"
-    CASH = "cash"
-    DEBT = "debt"
-    EQUITY = "equity"
-
     def __init__(self) -> None:
         super().__init__()
         self.type = ""
@@ -111,7 +107,7 @@ class Holding:
 class Equity(Asset):
     def __init__(self) -> None:
         super().__init__()
-        self.type = Asset.EQUITY
+        self.type = AssetType.EQUITY
         self.__stocks: List[Holding] = []
         self.__trade_book: List[Trade] = list()
 
@@ -188,7 +184,7 @@ class Equity(Asset):
 class Debt(Asset):
     def __init__(self) -> None:
         super().__init__()
-        self.type = Asset.DEBT
+        self.type = AssetType.DEBT
         self.__debt_instruments: List[Holding] = []
 
     def get_invested_amount(self):
@@ -268,7 +264,7 @@ class Cash(Asset):
 
     def __init__(self, amount: float) -> None:
         super().__init__()
-        self.type = Asset.CASH
+        self.type = AssetType.CASH
         self.amount = amount
 
     def remove(self, **kwargs):

@@ -2,7 +2,7 @@ from datetime import date, timedelta
 import pandas as pd
 import sqlite3
 
-from stockscanner.persistence.dao import TickerDAO
+from stockscanner.persistence.dao import TickerDAO, PortfolioDAO, StrategyDAO
 from datetime import datetime
 
 
@@ -87,6 +87,10 @@ class SqliteTickerDaoImpl(TickerDAO):
     def __del__(self):
         self.con.close()
 
+    def is_valid_ticker(self, symbol):
+        table_name = symbol.strip().replace(" ", "_") + "_OHLC"
+        return self.table_exist(table_name)
+
     def table_exist(self, table_name):
         table_name = table_name.strip().replace(" ", "_")
         cursor = self.con.cursor()
@@ -113,3 +117,13 @@ class SqliteTickerDaoImpl(TickerDAO):
                 f"CREATE TABLE {table_name} (Date date primary key, P_E real, P_B real, Div_Yield real)")
             self.con.commit()
             cursor.close()
+
+
+class SqlitePortfolioDaoImpl(PortfolioDAO):
+    def __init__(self, **kwargs) -> None:
+        super().__init__()
+
+
+class SqliteStrategyDaoImpl(StrategyDAO):
+    def __init__(self, **kwargs) -> None:
+        super().__init__()

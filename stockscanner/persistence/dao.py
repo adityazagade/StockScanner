@@ -10,6 +10,10 @@ class DAO(ABC):
 
 class TickerDAO(DAO):
     @abstractmethod
+    def is_valid_ticker(self, symbol):
+        pass
+
+    @abstractmethod
     def save(self, symbol, entry):
         pass
 
@@ -42,3 +46,11 @@ class TickerDAO(DAO):
 
     def save_pe_headers(self, ticker, headers):
         pass
+
+
+class PortfolioDAO(DAO):
+    pass
+
+
+class StrategyDAO(DAO):
+    pass

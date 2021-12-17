@@ -15,18 +15,15 @@ from stockscanner.utils.DateUtils import get_df_between_dates
 logger = logging.getLogger(__name__)
 
 
-class MarketMovementBasedAllocation(Strategy):
+class PEBasedAllocation(Strategy):
     def __init__(self, percent_change) -> None:
         super().__init__()
-        self.name = "MarketMovementBasedAllocation"
+        self.name = "PEBasedAllocation"
         self.change_threshold = percent_change / 100
         self.pivot = 0
 
     def check_if_constraints_are_matched(self, hist_data: pd.DataFrame, **kwargs) -> bool:
-        if self.pivot == 0:
-            raise Exception(f"pivot is set to 0")
-        if abs((hist_data.iloc[-1]['Close'] - self.pivot) / self.pivot) >= self.change_threshold:
-            return True
+        # TODO
         return False
 
     def apply_to_portfolio(self, **kwargs):
@@ -45,7 +42,7 @@ class MarketMovementBasedAllocation(Strategy):
         try:
             back_test_start_date = kwargs.get('back_test_start_date')
 
-            p: Portfolio = PortfolioBuilder() \
+            p = PortfolioBuilder() \
                 .with_name("test_portfolio") \
                 .with_initial_capital(100000) \
                 .with_eq_weight(0.5) \
@@ -59,7 +56,8 @@ class MarketMovementBasedAllocation(Strategy):
             df_nifty = ticker_dao.read_all_data("NIFTY 50")
             df_nifty_pe = ticker_dao.read_all_pe_data("NIFTY 50")
             df_nifty = df_nifty.merge(df_nifty_pe, how="left", on="Date")
-            df_nifty_init = get_df_between_dates(df_nifty, back_test_start_date, back_test_start_date + timedelta(5))
+            df_nifty_init = get_df_between_dates(df_nifty, back_test_start_date,
+                                                 back_test_start_date + timedelta(5))
             back_test_start_date = df_nifty_init.iloc[0]['Date']
             nifty_on_start_date = df_nifty_init.iloc[0]
 
@@ -84,7 +82,8 @@ class MarketMovementBasedAllocation(Strategy):
                         self.pivot = df1.iloc[-1]['Close']
                         p.rebalance_by_weights(curr_date=curr_date, eq_weight=weights["eq_weight"],
                                                debt_weight=weights["debt_weight"],
-                                               gold_weight=weights["gold_weight"], cash_weight=weights["cash_weight"])
+                                               gold_weight=weights["gold_weight"],
+                                               cash_weight=weights["cash_weight"])
                         message = f"Total Invested: ${p.total_invested()}, " \
                                   f"Current Value: ${p.get_value_as_of_date(curr_date)} \r\n " \
                                   f"eq: {p.get_asset_weight(AssetType.EQUITY, curr_date)} " \
