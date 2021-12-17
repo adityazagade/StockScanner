@@ -1,7 +1,7 @@
 from datetime import date
 from typing import List
-from stockscanner.model.asset import Asset
-from stockscanner.model.strategy import Strategy
+from stockscanner.model.portfolio.asset import Asset
+from stockscanner.model.strategies.strategy import Strategy
 
 
 class Portfolio:
@@ -36,11 +36,15 @@ class Portfolio:
     def apply_strategy(self, s: Strategy):
         self.__strategy = s
 
-    def do_rebalance(self, curr_date: date, **kwargs):
+    def rebalance_by_weights(self, **kwargs):
+        curr_date: date = kwargs.get("curr_date")
+
         curr_eq_weight = self.get_eq_weight(curr_date)
         curr_debt_weight = self.get_debt_weight(curr_date)
         curr_gold_weight = self.get_gold_weight(curr_date)
         curr_cash_weight = self.get_cash_weight(curr_date)
+
+        current_pe = kwargs.get("current_pe")
 
         val_as_of_today = self.get_value_as_of_date(curr_date)
         # change in weight
@@ -67,6 +71,9 @@ class Portfolio:
             self.get_cash_asset().add_by_amount(abs(amount), curr_date)
         elif amount < 0:
             self.get_cash_asset().reduce_by_amount(abs(amount), curr_date)
+
+        message = f"Total Invested: ${self.total_invested()}, Current Value: ${self.get_value_as_of_date(curr_date)} \r\n eq: {self.get_eq_weight(curr_date)} debt: {self.get_debt_weight(curr_date)} gold: {self.get_gold_weight(curr_date)} cash: {self.get_cash_weight(curr_date)}"
+        self.add_rebalance_logs(f"Portfolio rebalanced on {curr_date} pe:{current_pe} \n + ${message}")
 
     def get_eq_weight(self, curr_date=None) -> float:
         for a in self.__assets:
@@ -151,3 +158,6 @@ class Portfolio:
 
     def get_trade_book(self) -> list:
         return self.get_eq_asset().get_trade_book()
+
+    def get_strategy(self) -> Strategy:
+        return self.__strategy

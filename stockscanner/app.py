@@ -1,8 +1,8 @@
 import logging
 
 from stockscanner.model.config import Config
-from stockscanner.model.index_watcher import IndexWatcher
-from stockscanner.model.change_watcher import ChangeWatcher
+from stockscanner.model.watchers.index_watcher import IndexWatcher
+from stockscanner.model.watchers.change_watcher import ChangeWatcher
 
 
 logger = logging.getLogger(__name__)

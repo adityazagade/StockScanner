@@ -1,36 +1,16 @@
-import logging
-from abc import ABC, abstractmethod
 from datetime import timedelta
 
 import pandas as pd
 
-from stockscanner.model.asset import Equity, Debt, Cash
-from stockscanner.model.report import Report
+from stockscanner.model.portfolio.asset import Equity, Debt, Cash
+from stockscanner.model.portfolio.portfolio import Portfolio
+from stockscanner.model.reporting.report import Report
+from stockscanner.model.strategies.strategy import Strategy, logger
+from stockscanner.utils.DateUtils import get_df_between_dates
 from stockscanner.persistence.dao import TickerDAO
-
-logger = logging.getLogger(__name__)
-
-
-def get_df_between_dates(df, start_date, end_date):
-    mask = (df['Date'] >= start_date.strftime("%d-%b-%Y")) & (df['Date'] < (end_date).strftime("%d-%b-%Y"))
-    return df.loc[mask]
-
-
-class Strategy(ABC):
-    def __init__(self):
-        self.name = None
-
-    @abstractmethod
-    def check_if_constraints_are_matched(self, hist_data, **kwargs) -> bool:
-        pass
-
-    @abstractmethod
-    def backtest(self, df, **kwargs) -> Report:
-        pass
 
 
 class MarketMovementBasedAllocation(Strategy):
-
     def __init__(self, percent_change) -> None:
         super().__init__()
         self.name = "MarketMovementBasedAllocation"
@@ -42,11 +22,23 @@ class MarketMovementBasedAllocation(Strategy):
             return True
         return False
 
+    def apply_to_portfolio(self, **kwargs):
+        df_nifty = kwargs.get("df")
+        curr_date = kwargs.get("curr_date")
+        portfolio: Portfolio = kwargs.get("portfolio")
+        # // weights will be recalculated based on parameters.
+        eq_weight = self.get_eq_weight(df_nifty, curr_date)
+        cash_weight = 1 - eq_weight
+        self.pivot = df_nifty.iloc[-1]['Close']
+        current_pe = (df_nifty.loc[df_nifty['Date'] == curr_date])['P_E'].iloc[0]
+        portfolio.rebalance_by_weights(curr_date=curr_date, current_pe=current_pe, eq_weight=eq_weight,
+                                       cash_weight=cash_weight)
+
     def backtest(self, ticker_dao: TickerDAO, **kwargs) -> Report:
         back_test_start_date = kwargs.get('back_test_start_date')
 
         # create portfolio based on weights
-        from stockscanner.model.portfolio import Portfolio
+        from stockscanner.model.portfolio.portfolio import Portfolio
         p: Portfolio = Portfolio("test_portfolio")
 
         # read nifty hist data
@@ -115,9 +107,8 @@ class MarketMovementBasedAllocation(Strategy):
                     eq_weight = self.get_eq_weight(df_nifty, curr_date)
                     cash_weight = 1 - eq_weight
                     pivot = df1.iloc[-1]['Close']
-                    # if the constraints are met, then call rebalance on portfolio.
-                    p.do_rebalance(curr_date=curr_date, eq_weight=eq_weight, debt_weight=debt_weight,
-                                   gold_wight=gold_wight, cash_weight=cash_weight)
+                    p.rebalance_by_weights(curr_date=curr_date, eq_weight=eq_weight, debt_weight=debt_weight,
+                                           gold_wight=gold_wight, cash_weight=cash_weight)
                     message = f"Total Invested: ${p.total_invested()}, Current Value: ${p.get_value_as_of_date(curr_date)} \r\n eq: {p.get_eq_weight(curr_date)} debt: {p.get_debt_weight(curr_date)} gold: {p.get_gold_weight(curr_date)} cash: {p.get_cash_weight(curr_date)}"
                     current_pe = (df_nifty.loc[df_nifty['Date'] == curr_date])['P_E'].iloc[0]
                     p.add_rebalance_logs(f"Portfolio rebalanced on {curr_date} pe:{current_pe} \n + ${message}")
