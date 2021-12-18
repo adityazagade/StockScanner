@@ -1,14 +1,9 @@
-import matplotlib.pyplot as plt
-
-
 class Report:
     def __init__(self, p=None) -> None:
         self.p = p
-        self.__performance = []
+        self.performance = []
 
     def __str__(self) -> str:
-        plt.scatter(*zip(*self.__performance))
-        plt.show()
         res = f"{self.p}"
         return res
 
@@ -16,4 +11,4 @@ class Report:
         self.p = p
 
     def track(self, entry):
-        self.__performance.append(entry)
+        self.performance.append(entry)

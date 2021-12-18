@@ -1,9 +1,20 @@
 {
-  "db": "fs",
+  "db": "sqlite3",
+  "logging": {
+    "log_level": "debug"
+  },
   "watch_freq": 60,
   "hist_start_year": 2005,
-  "backtest": {
-    "strategy_name": "MarketMovementBasedAllocation",
-    "backtest_start_date": "01-01-2010"
-  }
+  "backtest": [
+    {
+      "strategy_name": "BuyAndHold",
+      "backtest_start_date": "01-01-2010"
+    }
+  ],
+  "strategies": {
+    "MarketMovementBasedAllocation": {
+      "change_threshold": 5
+    }
+  },
+  "interest_rate": 4
 }
