@@ -10,5 +10,6 @@
     "MarketMovementBasedAllocation": {
       "change_threshold": 5
     }
-  }
+  },
+  "interest_rate": 4
 }

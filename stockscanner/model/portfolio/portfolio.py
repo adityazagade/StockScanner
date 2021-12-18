@@ -3,7 +3,10 @@ from typing import List
 
 from stockscanner.model.asset.asset_type import AssetType
 from stockscanner.model.exceptions.exceptions import AssetNotFoundException
-from stockscanner.model.asset.asset import Asset, Equity, Cash, Debt
+from stockscanner.model.asset.asset import Asset
+from stockscanner.model.asset.cash import Cash
+from stockscanner.model.asset.debt import Debt
+from stockscanner.model.asset.equity import Equity
 from stockscanner.model.strategies.strategy import Strategy
 
 
