@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 from stockscanner.model.config import Config
@@ -6,6 +7,8 @@ from stockscanner.model.strategies.strategy import Strategy
 from stockscanner.model.strategies.market_movement_based_allocation import MarketMovementBasedAllocation
 from stockscanner.persistence import dao_factory
 from stockscanner.persistence.dao import TickerDAO
+
+logger = logging.getLogger(__name__)
 
 
 class StrategyManager:
@@ -21,9 +24,9 @@ class StrategyManager:
             s: Strategy = self.get_by_name(sname)
             return s.backtest(self.ticker_dao, **kwargs)
         except StrategyNotFoundException:
-            print(f"Strategy {sname} not found")
+            logger.error(f"Strategy {sname} not found")
         except Exception as e:
-            print(f"backtesting the strategy {sname} failed: {e}")
+            logger.error(f"backtesting the strategy {sname} failed: {e}")
 
     def get_by_name(self, sname) -> Strategy:
         for s in self.strategies:

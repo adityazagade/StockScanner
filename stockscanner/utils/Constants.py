@@ -6,3 +6,5 @@ JSON_CONTEXT = "/json"
 CONTENT_CONTEXT = "/content"
 EQUITY_STOCK_INDICES = "/equity-stockIndices"
 EXTENSION_CSV = ".csv"
+
+SAVINGS_ACC = "SAVINGS_ACC"

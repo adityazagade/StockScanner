@@ -49,10 +49,11 @@ class MarketMovementBasedAllocation(Strategy):
                 .with_name("test_portfolio") \
                 .with_initial_capital(100000) \
                 .with_eq_weight(0.5) \
-                .with_debt_weight(0) \
+                .with_debt_weight(0.5) \
                 .with_gold_weight(0) \
-                .with_cash_weight(0.5) \
+                .with_cash_weight(0) \
                 .with_stocks(["NIFTY 50"]) \
+                .with_debts(["SAVINGS_ACC"]) \
                 .on_date(back_test_start_date) \
                 .build()
 
@@ -100,7 +101,8 @@ class MarketMovementBasedAllocation(Strategy):
         except Exception as e:
             logger.error(f"Backtest failed: {e}")
 
-    def get_asset_weights(self, df_nifty, curr_date):
+    @staticmethod
+    def get_asset_weights(df_nifty, curr_date):
         result = {}
         mask = (df_nifty['Date'] >= (curr_date - timedelta(days=365 * 5)).strftime("%d-%b-%Y")) & (
                 df_nifty['Date'] <= curr_date.strftime("%d-%b-%Y"))
@@ -128,7 +130,7 @@ class MarketMovementBasedAllocation(Strategy):
             raise Exception("Could not determine equity weight")
 
         # TODO: get debt weight
-        result["debt_weight"] = 0
+        result["debt_weight"] = (1 - result["eq_weight"])
         # TODO: get gold weight
         result["gold_weight"] = 0
         # get cash weight

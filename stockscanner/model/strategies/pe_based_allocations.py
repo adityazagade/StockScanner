@@ -99,7 +99,8 @@ class PEBasedAllocation(Strategy):
         except Exception as e:
             logger.error(f"Backtest failed: {e}")
 
-    def get_asset_weights(self, df_nifty, curr_date):
+    @staticmethod
+    def get_asset_weights(df_nifty, curr_date):
         result = {}
         mask = (df_nifty['Date'] >= (curr_date - timedelta(days=365 * 5)).strftime("%d-%b-%Y")) & (
                 df_nifty['Date'] <= curr_date.strftime("%d-%b-%Y"))

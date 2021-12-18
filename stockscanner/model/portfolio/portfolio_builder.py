@@ -5,6 +5,7 @@ from typing import List
 from stockscanner.model.exceptions.exceptions import PortfolioCreationException
 from stockscanner.model.portfolio.portfolio import Portfolio
 from stockscanner.persistence.dao_manager import DAOManager
+from stockscanner.utils import Constants
 
 logger = logging.getLogger(__name__)
 
@@ -74,10 +75,15 @@ class PortfolioBuilder:
 
             debt_value = self.debt_weight * self.initial_cap
             for debt in self.debts:
-                debt_price_action = self.ticker_dao.read_data_for_date(ticker=debt, d=self.creation_date)
-                debt_price = debt_price_action['Close']
-                debt_quantity = (debt_value / debt_price) / len(self.debts)
-                p.add_debt(symbol=debt, date=self.creation_date, quantity=debt_quantity, price=debt_price)
+                if debt == Constants.SAVINGS_ACC:
+                    debt_price = 1
+                    debt_quantity = (debt_value / debt_price) / len(self.debts)
+                    p.add_debt(symbol=debt, date=self.creation_date, quantity=debt_quantity, price=debt_price)
+                else:
+                    debt_price_action = self.ticker_dao.read_data_for_date(ticker=debt, d=self.creation_date)
+                    debt_price = debt_price_action['Close']
+                    debt_quantity = (debt_value / debt_price) / len(self.debts)
+                    p.add_debt(symbol=debt, date=self.creation_date, quantity=debt_quantity, price=debt_price)
 
             # TODO: gold
 

@@ -3,8 +3,9 @@ from typing import List
 
 from stockscanner.model.asset.asset import Asset, Trade
 from stockscanner.model.asset.asset_type import AssetType
-from stockscanner.model.asset.holding import Holding
+from stockscanner.model.asset.holding import Holding, HoldingBuilder
 from stockscanner.persistence.dao_manager import DAOManager
+from stockscanner.utils import Constants
 
 
 class Debt(Asset):
@@ -43,8 +44,10 @@ class Debt(Asset):
                 self.__trade_book.append(Trade("buy", d, price, quantity))
                 return
 
-        debt = Holding(symbol, [])
-        debt.add_entry(d, quantity, price)
+        debt = HoldingBuilder(symbol) \
+            .with_entry(d, quantity, price) \
+            .build()
+
         self.__debt_instruments.append(debt)
         self.__trade_book.append(Trade("buy", d, price, quantity))
 
@@ -56,16 +59,26 @@ class Debt(Asset):
                 break
 
     def add_by_amount(self, amount: float, d: date = date.today()):
-        dao = DAOManager.get_instance().get_dao_for_ticker()
-        data = dao.read_data_for_date("LIQUIDBEES", d)
-        quantity = amount / float(data['Close'])
-        self.add(symbol="LIQUIDBEES", quantity=quantity, price=float(data['Close']), date=d)
+        for debt in self.__debt_instruments:
+            if debt.symbol == Constants.SAVINGS_ACC:
+                quantity = amount / len(self.__debt_instruments)
+                price = 1
+            else:
+                dao = DAOManager.get_instance().get_dao_for_ticker()
+                data = dao.read_data_for_date(debt.symbol, d)
+                price = float(data['Close'])
+                quantity = (amount / price) / len(self.__debt_instruments)
+            self.add(symbol=debt.symbol, quantity=quantity, price=price, date=d)
 
     def reduce_by_amount(self, amount: float, d: date = date.today()):
-        dao = DAOManager.get_instance().get_dao_for_ticker()
-        data = dao.read_data_for_date("LIQUIDBEES", d)
-        quantity = amount / float(data['Close'])
-        self.remove(symbol="LIQUIDBEES", quantity=quantity)
+        for debt in self.__debt_instruments:
+            if debt.symbol == Constants.SAVINGS_ACC:
+                quantity = amount / len(self.__debt_instruments)
+            else:
+                dao = DAOManager.get_instance().get_dao_for_ticker()
+                data = dao.read_data_for_date(debt.symbol, d)
+                quantity = (amount / float(data['Close'])) / len(self.__debt_instruments)
+            self.remove(symbol=debt.symbol, quantity=quantity, date=d)
 
     def get_trade_book(self):
         return self.__trade_book

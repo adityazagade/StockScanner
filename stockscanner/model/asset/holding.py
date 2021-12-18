@@ -1,12 +1,17 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from typing import List
+
+from pandas import Timestamp
 
 from stockscanner.model.config import Config
 from stockscanner.persistence.dao_manager import DAOManager
+from stockscanner.utils import Constants
 
 
 class Entry:
     def __init__(self, d: date, quantity: float, price: float) -> None:
+        if (type(d) is Timestamp) or (type(d) is datetime):
+            d = d.date()
         self.date = d
         self.quantity = quantity
         self.price = price
@@ -83,7 +88,7 @@ class SavingsAccount(Holding):
 
     def __init__(self, symbol, history: List[Entry]) -> None:
         super().__init__(symbol, history)
-        self.interest_rate = Config.load_config()["interest_rate"]
+        self.interest_rate = Config.load_config()["interest_rate"] / 100
 
     def get_average_buy_price(self) -> float:
         sum = 0
@@ -111,10 +116,13 @@ class SavingsAccount(Holding):
     def get_value_as_of_date(self, d) -> float:
         sum = 0
         for entry in self.history:
-            if entry.date < d:
+            if entry.date <= d:
                 principle = entry.quantity * entry.price
-                daily_rate = self.interest_rate / 365 * 100
-                value = principle * pow((1 + daily_rate), (d - entry.date).days)
+                daily_rate = self.interest_rate / 365
+                curr_date = d
+                if (type(d) is Timestamp) or (type(d) is datetime):
+                    curr_date = d.date()
+                value = principle * pow((1 + daily_rate), (curr_date - entry.date).days)
                 sum += value
         return sum
 
@@ -128,12 +136,23 @@ class SavingsAccount(Holding):
         quantity = kwargs.get("quantity")
         d = kwargs.get("date")
         value_to_be_removed = quantity * self.get_current_price()
-
         curr_value = self.get_value_as_of_date(d)
         expected_value = curr_value - value_to_be_removed
+        self.history = []
+        self.history.append(Entry(d=d, quantity=expected_value, price=1))
 
-        while curr_value > expected_value:
 
-            for entry in self.history:
-                entry.quantity -= 10
+class HoldingBuilder:
+    def __init__(self, symbol) -> None:
+        super().__init__()
+        self.history = []
+        self.symbol = symbol
 
+    def with_entry(self, d: date, quantity: float, price: float):
+        self.history.append(Entry(d, quantity, price))
+        return self
+
+    def build(self):
+        if self.symbol == Constants.SAVINGS_ACC:
+            return SavingsAccount(self.symbol, self.history)
+        return Holding(self.symbol, self.history)

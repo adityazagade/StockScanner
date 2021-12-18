@@ -3,7 +3,7 @@ from typing import List
 
 from stockscanner.model.asset.asset import Asset, Trade
 from stockscanner.model.asset.asset_type import AssetType
-from stockscanner.model.asset.holding import Holding
+from stockscanner.model.asset.holding import Holding, HoldingBuilder
 from stockscanner.persistence.dao_manager import DAOManager
 
 
@@ -24,8 +24,9 @@ class Equity(Asset):
                 stock.add_entry(d, quantity, price)
                 self.__trade_book.append(Trade("buy", d, price, quantity))
                 return
-        hld = Holding(symbol, [])
-        hld.add_entry(d, quantity, price)
+        hld = HoldingBuilder(symbol) \
+            .with_entry(d, quantity, price) \
+            .build()
         self.__stocks.append(hld)
         self.__trade_book.append(Trade("buy", d, price, quantity))
 

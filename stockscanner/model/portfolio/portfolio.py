@@ -143,6 +143,8 @@ class Portfolio:
         dt.add(**kwargs)
 
     def add_cash(self, cash_value):
+        if cash_value <= 0:
+            return
         try:
             cash_asset = self.get_asset(AssetType.CASH)
             cash_asset.add_by_amount(cash_value)
