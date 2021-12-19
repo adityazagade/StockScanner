@@ -3,6 +3,7 @@ from typing import List
 from stockscanner.model.config import Config
 from stockscanner.model.portfolio.portfolio import Portfolio
 from stockscanner.persistence import dao_factory
+from stockscanner.persistence.dao import PortfolioDAO
 
 
 class PortfolioManager:

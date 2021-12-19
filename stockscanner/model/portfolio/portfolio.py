@@ -151,3 +151,7 @@ class Portfolio:
         except AssetNotFoundException:
             cash_asset = Cash(cash_value)
             self.__assets.append(cash_asset)
+
+    def add_equities_by_amount(self, amount: int, d: date):
+        eq = self.get_asset(AssetType.EQUITY)
+        eq.add_by_amount(amount=amount, d=d)

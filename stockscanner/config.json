@@ -7,15 +7,26 @@
   "hist_start_year": 2005,
   "backtest": [
     {
+      "test_name": "SIP",
+      "strategy_name": "SIP",
+      "backtest_start_date": "01-01-2011",
+      "sip_start_date": "21-01-2011",
+      "sip_amount": 10000,
+      "sip_frequency": "monthly"
+    },
+    {
       "strategy_name": "BuyAndHold",
+      "test_name": "BuyAndHold",
       "backtest_start_date": "01-01-2010"
     },
     {
       "strategy_name": "MarketMovementBasedAllocation",
+      "test_name": "MarketMovementBasedAllocation",
       "backtest_start_date": "01-01-2010"
     },
     {
       "strategy_name": "PEBasedAllocation",
+      "test_name": "PEBasedAllocation",
       "backtest_start_date": "01-01-2010"
     }
   ],

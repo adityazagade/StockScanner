@@ -6,10 +6,12 @@ from stockscanner.model.exceptions.exceptions import StrategyNotFoundException
 from stockscanner.model.reporting.report import Report
 from stockscanner.model.strategies.buy_n_hold_strategy import BuyAndHold
 from stockscanner.model.strategies.pe_based_allocations import PEBasedAllocation
+from stockscanner.model.strategies.sip import SIP
 from stockscanner.model.strategies.strategy import Strategy
 from stockscanner.model.strategies.market_movement_based_allocation import MarketMovementBasedAllocation
 from stockscanner.persistence import dao_factory
 from stockscanner.persistence.dao import TickerDAO
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -21,18 +23,22 @@ class StrategyManager:
         self.strategies: List[Strategy] = [
             MarketMovementBasedAllocation(config["strategies"]["MarketMovementBasedAllocation"]["change_threshold"]),
             BuyAndHold(),
+            SIP(),
             PEBasedAllocation(config["strategies"]["MarketMovementBasedAllocation"]["change_threshold"])
         ]
         self.ticker_dao: TickerDAO = dao_factory.get_ticker_dao(config["db"])
 
-    def back_test_strategy(self, sname, **kwargs) -> Report:
+    def back_test_strategy(self, strategy_config) -> Report:
+        strategy_name = strategy_config["strategy_name"]
         try:
-            s: Strategy = self.get_by_name(sname)
-            return s.backtest(self.ticker_dao, **kwargs)
+            s: Strategy = self.get_by_name(strategy_name)
+            s.init(strategy_config)
+            date_time_obj = datetime.strptime(strategy_config["backtest_start_date"], '%d-%m-%Y').date()
+            return s.backtest(self.ticker_dao, back_test_start_date=date_time_obj)
         except StrategyNotFoundException:
-            logger.error(f"Strategy {sname} not found")
+            logger.error(f"Strategy {strategy_name} not found")
         except Exception as e:
-            logger.error(f"backtesting the strategy {sname} failed: {e}")
+            logger.error(f"backtesting the strategy {strategy_name} failed: {e}")
 
     def get_by_name(self, sname) -> Strategy:
         for s in self.strategies:

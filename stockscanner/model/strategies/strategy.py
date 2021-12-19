@@ -11,7 +11,7 @@ class Strategy(ABC):
         self.name = None
 
     @abstractmethod
-    def check_if_constraints_are_matched(self, hist_data, **kwargs) -> bool:
+    def check_if_constraints_are_matched(self, **kwargs) -> bool:
         pass
 
     @abstractmethod
@@ -19,4 +19,7 @@ class Strategy(ABC):
         pass
 
     def apply_to_portfolio(self, **kwargs):
+        pass
+
+    def init(self, strategy_config: dict):
         pass

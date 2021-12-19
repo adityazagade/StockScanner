@@ -19,6 +19,10 @@ class Equity(Asset):
         quantity: float = kwargs.get("quantity")
         d: date = kwargs.get("date")
         price: float = kwargs.get("price")
+
+        if price <= 0 or quantity <= 0:
+            return
+
         for stock in self.__stocks:
             if stock.symbol == symbol:
                 stock.add_entry(d, quantity, price)
@@ -38,16 +42,19 @@ class Equity(Asset):
                 break
 
     def add_by_amount(self, amount: float, d: date = date.today()):
-        dao = DAOManager.get_instance().get_dao_for_ticker()
-        data = dao.read_data_for_date("NIFTY 50", d)
-        quantity = amount / float(data['Close'])
-        self.add(symbol="NIFTY 50", quantity=quantity, price=float(data['Close']), date=d)
+        for stock in self.__stocks:
+            dao = DAOManager.get_instance().get_dao_for_ticker()
+            data = dao.read_data_for_date(stock.symbol, d)
+            price = float(data['Close'])
+            quantity = (amount / price) / len(self.__stocks)
+            self.add(symbol=stock.symbol, quantity=quantity, price=price, date=d)
 
     def reduce_by_amount(self, amount: float, d: date = date.today()):
-        dao = DAOManager.get_instance().get_dao_for_ticker()
-        data = dao.read_data_for_date("NIFTY 50", d)
-        quantity = amount / float(data['Close'])
-        self.remove(symbol="NIFTY 50", quantity=quantity, date=d, price=data['Close'])
+        for stock in self.__stocks:
+            dao = DAOManager.get_instance().get_dao_for_ticker()
+            data = dao.read_data_for_date(stock.symbol, d)
+            quantity = (amount / float(data['Close'])) / len(self.__stocks)
+            self.remove(symbol=stock.symbol, quantity=quantity, date=d, price=data['Close'])
 
     def get_current_value(self):
         curr_value = 0

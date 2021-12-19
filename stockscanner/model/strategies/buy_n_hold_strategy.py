@@ -19,7 +19,7 @@ class BuyAndHold(Strategy):
         super().__init__()
         self.name = "BuyAndHold"
 
-    def check_if_constraints_are_matched(self, hist_data: pd.DataFrame, **kwargs) -> bool:
+    def check_if_constraints_are_matched(self, **kwargs) -> bool:
         return False
 
     def apply_to_portfolio(self, **kwargs):

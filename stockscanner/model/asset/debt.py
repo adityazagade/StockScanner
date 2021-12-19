@@ -38,6 +38,10 @@ class Debt(Asset):
         quantity: float = kwargs.get("quantity")
         d: date = kwargs.get("date")
         price: float = kwargs.get("price")
+
+        if price <= 0 or quantity <= 0:
+            return
+
         for debt in self.__debt_instruments:
             if debt.symbol == symbol:
                 debt.add_entry(d, quantity, price)

@@ -22,7 +22,8 @@ class MarketMovementBasedAllocation(Strategy):
         self.change_threshold = percent_change / 100
         self.pivot = 0
 
-    def check_if_constraints_are_matched(self, hist_data: pd.DataFrame, **kwargs) -> bool:
+    def check_if_constraints_are_matched(self, **kwargs) -> bool:
+        hist_data: pd.DataFrame = kwargs.get("df")
         if self.pivot == 0:
             raise Exception(f"pivot is set to 0")
         if abs((hist_data.iloc[-1]['Close'] - self.pivot) / self.pivot) >= self.change_threshold:
@@ -79,7 +80,7 @@ class MarketMovementBasedAllocation(Strategy):
                     mask = (df_nifty['Date'] >= back_test_start_date.strftime("%d-%b-%Y")) & (
                             df_nifty['Date'] <= curr_date.strftime("%d-%b-%Y"))
                     df1 = df_nifty.loc[mask]
-                    if self.check_if_constraints_are_matched(df1):
+                    if self.check_if_constraints_are_matched(df=df1):
                         # // weights will be recalculated based on parameters.
                         weights = self.get_asset_weights(df_nifty, curr_date)
                         self.pivot = df1.iloc[-1]['Close']
